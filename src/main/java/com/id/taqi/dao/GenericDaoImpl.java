@@ -1,60 +1,58 @@
 package com.id.taqi.dao;
 
-import java.io.Serializable;
+import java.util.List;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Example;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.List;
+public class GenericDaoImpl<E, K> implements GenericDao<E, K>{
 
-@SuppressWarnings("unchecked")
-@Repository
-public abstract class GenericDaoImpl<E, K extends Serializable> implements GenericDao<E, K> {
+	protected Class<E> entityClass;
 	
-    @Autowired
-    private SessionFactory sessionFactory;
-    protected Class<? extends E> daoType;
-
-    /**
-     * By defining this class as abstract, we prevent Spring from creating instance of this class
-     * If not defined abstract getClass().getGenericSuperClass() would return Object.
-     * There would be exception because Object class does not hava constructor with parameters.
-     */
-    public GenericDaoImpl() {
-    	Type t = getClass().getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) t;
-        daoType = (Class) pt.getActualTypeArguments()[0];
+	@Autowired
+	private SessionFactory sessionFactory;
+	
+	protected GenericDaoImpl() {
+        Type type = getClass().getGenericSuperclass();
+        if (type instanceof ParameterizedType) {
+            this.entityClass = (Class) ((ParameterizedType) type).getActualTypeArguments()[0];
+        }
     }
-    
-    protected Session getSession() {
-		return this.sessionFactory.getCurrentSession();
+	
+	protected Session currentSession() {
+        return sessionFactory.getCurrentSession();
+    }
+	
+	@SuppressWarnings({ "deprecation", "unchecked" })
+	@Override
+	public List<E> getAll() { 
+        return currentSession().createCriteria(entityClass).list(); 
 	}
 
-    public void saveOrUpdate(E entity) {
-    	getSession().saveOrUpdate(entity);
-    }
+	@Override
+	public E getById(K k) {
+		return (E) currentSession().find(entityClass, k);
+	}
 
-    public void remove(E entity) {
-    	getSession().delete(entity);
-    }
+	@Override
+	public boolean delete(E e) {
+		currentSession().delete(e);
+		return true;
+	}
 
-    public E findById(K key) {
-        return (E) getSession().get(this.daoType, key);
-    }
+	@Override
+	public boolean save(E e) {
+		currentSession().save(e);
+		return true;
+	}
 
-    public List<E> getAll() {
-    	//Example example = Example.create(entity).ignoreCase().enableLike().excludeZeroes();
-		return getSession().createCriteria(this.daoType).list();
-    }
-    
-    public List<E> getByExample(E entity){
-    	Example example = Example.create(entity).ignoreCase().enableLike().excludeZeroes();
-		return getSession().createCriteria(this.daoType).add(example).list();
-    }
+	@Override
+	public boolean update(E e) {
+		currentSession().update(e);
+		return true;
+	}
+
 }

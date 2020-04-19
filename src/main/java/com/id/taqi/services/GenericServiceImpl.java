@@ -2,6 +2,7 @@ package com.id.taqi.services;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,39 +10,39 @@ import org.springframework.transaction.annotation.Transactional;
 import com.id.taqi.dao.GenericDao;
 
 @Service
-public abstract class GenericServiceImpl<E, K> implements GenericService<E, K> {
+public class GenericServiceImpl<E, K> implements GenericService<E, K> {
 
-    private GenericDao<E, K> genericDao;
+	@Autowired
+	private GenericDao<E, K> genericDao;
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+	public E getById(K k) {
+		return genericDao.getById(k);
+	}
 
-    public GenericServiceImpl(GenericDao<E, K> genericDao) {
-        this.genericDao=genericDao;
-    }
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+	public List<E> getAll() {
+		return genericDao.getAll();
+	}
 
-    public GenericServiceImpl() {
-    }
-    
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void saveOrUpdate(E entity) {
-        genericDao.saveOrUpdate(entity);
-    }
-    
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void remove(E entity) {
-        genericDao.remove(entity);
-    }
-    
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
-    public E findById(K id) {
-        return genericDao.findById(id);
-    }
-    
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
-    public List<E> getAll() {
-        return genericDao.getAll();
-    }
-    
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
-    public List<E> getByExample(E entity) {
-        return genericDao.getByExample(entity);
-    }
+	@Override
+	public boolean save(E e) {
+		genericDao.save(e);
+		return true;
+	}
+
+	@Override
+	public boolean update(E e) {
+		genericDao.update(e);
+		return true;
+	}
+
+	@Override
+	public boolean delete(E e) {
+		genericDao.delete(e);
+		return true;
+	}
+
 }
