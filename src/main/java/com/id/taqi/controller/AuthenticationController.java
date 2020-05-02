@@ -13,11 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.id.taqi.common.JwtProvider;
 import com.id.taqi.dto.JwtResponse;
@@ -32,7 +28,7 @@ import com.id.taqi.services.UserService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class AuthenticationController {
 
 	@Autowired
@@ -63,22 +59,22 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpForm signUpRequest) {
-		if (userService.existsByUserName(signUpRequest.getUserName())) {
+	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpForm req) {
+		if (userService.existsByUserName(req.getUserName())) {
 			return new ResponseEntity<>(new ResponseMessage("Fail -> Username is already taken!"),
 					HttpStatus.BAD_REQUEST);
 		}
 
-		if (userService.existsByEmail(signUpRequest.getEmail())) {
+		if (userService.existsByEmail(req.getEmail())) {
 			return new ResponseEntity<>(new ResponseMessage("Fail -> Email is already in use!"),
 					HttpStatus.BAD_REQUEST);
 		}
 
 		// Creating user's account
-		User user = new User(signUpRequest.getName(), signUpRequest.getUserName(), signUpRequest.getEmail(),
-				encoder.encode(signUpRequest.getPassword()));
+		User user = new User(req.getName(), req.getUserName(), req.getEmail(),
+				encoder.encode(req.getPassword()));
 
-		Set<String> strRoles = signUpRequest.getRole();
+		Set<String> strRoles = req.getRole();
 		Set<Role> roles = new HashSet<>();
 
 		strRoles.forEach(role -> {
@@ -101,5 +97,15 @@ public class AuthenticationController {
 		userService.save(user);
 
 		return new ResponseEntity<>(new ResponseMessage("User registered successfully!"), HttpStatus.OK);
+	}
+
+	@GetMapping("/users")
+	public ResponseEntity<?> getAllUsers(){
+		try {
+			userService.getAll();
+			return ResponseEntity.ok(HttpStatus.OK);
+		}catch (Exception e){
+			return ResponseEntity.ok(HttpStatus.NOT_FOUND);
+		}
 	}
 }

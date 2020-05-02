@@ -17,7 +17,6 @@ import com.id.taqi.entity.Employee;
 import com.id.taqi.services.EmployeeService;
 
 @RestController
-@RequestMapping("/api/v1")
 @CrossOrigin("*")
 public class EmployeeControler {
 
