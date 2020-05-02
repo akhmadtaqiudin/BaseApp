@@ -119,7 +119,7 @@ public class AuthenticationController {
 	@GetMapping("/users/{id}")
 	public ResponseEntity<User> getUserBYId(@PathVariable("id") Long id){		
 		try {
-			User user = userService.getById(id);
+			User user = userService.getById(id); 
 			return ResponseEntity.ok(user);
 		}catch (Exception e){			
 			return new ResponseEntity<>(HttpStatus.OK);
